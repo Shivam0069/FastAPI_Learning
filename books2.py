@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Query, Path, HTTPException
+from fastapi import FastAPI, Query, Path, HTTPException, Body
 from pydantic import BaseModel, Field
 from typing import Optional
 from starlette import status
@@ -36,3 +36,9 @@ BOOKS = [
 @app.get("/books", status_code=status.HTTP_200_OK)
 async def read_all_books():
     return BOOKS
+
+
+@app.post("/create_book")
+def create_book(new_book=Body()):
+    BOOKS.append(new_book)
+    return new_book
