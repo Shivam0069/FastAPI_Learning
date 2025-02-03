@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Query, Path, HTTPException, Body
+from fastapi import FastAPI, Query, Path, HTTPException
 from pydantic import BaseModel, Field
 from typing import Optional
 from starlette import status
@@ -24,12 +24,44 @@ class Book:
 
 
 class BookRequest(BaseModel):
-    id: int
-    title: str
-    author: str
-    description: str
-    rating: int
-    published_date: int
+    id: Optional[int] = None
+    title: str = Field(
+        ...,
+        min_length=3,
+        error_messages={"min_length": "Title must be at least 3 characters long"},
+    )
+    author: str = Field(
+        ...,
+        min_length=3,
+        error_messages={"min_length": "Author must be at least 3 characters long"},
+    )
+    description: str = Field(
+        ...,
+        min_length=3,
+        max_length=100,
+        error_messages={
+            "min_length": "Description must be at least 3 characters long",
+            "max_length": "Description must be at most 100 characters long",
+        },
+    )
+    rating: int = Field(
+        ...,
+        ge=1,
+        le=5,
+        error_messages={
+            "ge": "Rating must be at least 1",
+            "le": "Rating must be at most 5",
+        },
+    )
+    published_date: int = Field(
+        ...,
+        ge=2022,
+        le=2030,
+        error_messages={
+            "ge": "Published date must be at least 2022",
+            "le": "Published date must be at most 2030",
+        },
+    )
 
 
 BOOKS = [
@@ -51,5 +83,9 @@ async def read_all_books():
 def create_book(book_request: BookRequest):
     new_book = Book(**book_request.model_dump())
     print(type(new_book))
-    BOOKS.append(new_book)
-    return new_book
+    BOOKS.append(find_book_id(new_book))
+
+
+def find_book_id(book: Book):
+    book.id = 1 if len(BOOKS) == 0 else BOOKS[-1].id + 1
+    return book
