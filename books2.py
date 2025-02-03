@@ -23,6 +23,15 @@ class Book:
         self.published_date = published_date
 
 
+class BookRequest(BaseModel):
+    id: int
+    title: str
+    author: str
+    description: str
+    rating: int
+    published_date: int
+
+
 BOOKS = [
     Book(1, "Computer Science Pro", "codingwithroby", "A very nice book!", 5, 2030),
     Book(2, "Be Fast with FastAPI", "codingwithroby", "A great book!", 5, 2030),
@@ -39,6 +48,8 @@ async def read_all_books():
 
 
 @app.post("/create_book")
-def create_book(new_book=Body()):
+def create_book(book_request: BookRequest):
+    new_book = Book(**book_request.model_dump())
+    print(type(new_book))
     BOOKS.append(new_book)
     return new_book
