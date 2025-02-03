@@ -93,6 +93,14 @@ async def read_all_books():
     return BOOKS
 
 
+@app.get("/books/{book_id}", status_code=status.HTTP_200_OK)
+def read_book(book_id: int):
+    for book in BOOKS:
+        if book.id == book_id:
+            return book
+    raise HTTPException(status_code=404, detail="Book not found")
+
+
 @app.post("/create_book")
 def create_book(book_request: BookRequest):
     new_book = Book(**book_request.model_dump())
