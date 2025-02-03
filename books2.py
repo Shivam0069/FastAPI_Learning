@@ -93,12 +93,36 @@ async def read_all_books():
     return BOOKS
 
 
+@app.get("/books/publish/", status_code=status.HTTP_200_OK)
+def read_book_by_publish_date(publish_date: int = Query(..., ge=2022, le=2030)):
+    books = []
+    for book in BOOKS:
+        if book.published_date == publish_date:
+            books.append(book)
+    if len(books) > 0:
+        return books
+    else:
+        raise HTTPException(status_code=404, detail="Book not found")
+
+
 @app.get("/books/{book_id}", status_code=status.HTTP_200_OK)
-def read_book(book_id: int):
+def read_book(book_id: int = Path(gt=0)):
     for book in BOOKS:
         if book.id == book_id:
             return book
     raise HTTPException(status_code=404, detail="Book not found")
+
+
+@app.get("/books/", status_code=status.HTTP_200_OK)
+def read_book_by_rating(rating: int = Query(..., ge=1, le=5)):
+    books = []
+    for book in BOOKS:
+        if book.rating == rating:
+            books.append(book)
+    if len(books) > 0:
+        return books
+    else:
+        raise HTTPException(status_code=404, detail="Book not found")
 
 
 @app.post("/create_book")
@@ -111,3 +135,27 @@ def create_book(book_request: BookRequest):
 def find_book_id(book: Book):
     book.id = 1 if len(BOOKS) == 0 else BOOKS[-1].id + 1
     return book
+
+
+@app.put("/books/update_book", status_code=status.HTTP_204_NO_CONTENT)
+def update_book(book: BookRequest):
+    book_update = False
+    for b in range(len(BOOKS)):
+        if BOOKS[b].id == book.id:
+            BOOKS[b] = book
+            book_update = True
+            break
+    if not book_update:
+        raise HTTPException(status_code=404, detail="Book not found")
+
+
+@app.delete("/books/delete_book/{book_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_book(book_id: int = Path(gt=0)):
+    book_deleted = False
+    for book in BOOKS:
+        if book.id == book_id:
+            BOOKS.remove(book)
+            book_deleted = True
+            break
+    if not book_deleted:
+        raise HTTPException(status_code=404, detail="Book not found")
