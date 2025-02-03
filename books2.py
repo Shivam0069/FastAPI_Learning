@@ -24,7 +24,9 @@ class Book:
 
 
 class BookRequest(BaseModel):
-    id: Optional[int] = None
+    id: Optional[int] = Field(
+        description="Id not required while creating a book", default=None
+    )
     title: str = Field(
         ...,
         min_length=3,
@@ -62,6 +64,18 @@ class BookRequest(BaseModel):
             "le": "Published date must be at most 2030",
         },
     )
+
+    model_config = {
+        "json_schema_extra": {
+            "example": {
+                "title": "A new book",
+                "author": "codingwithroby",
+                "description": "A new description of a book",
+                "rating": 5,
+                "published_date": 2029,
+            }
+        }
+    }
 
 
 BOOKS = [
