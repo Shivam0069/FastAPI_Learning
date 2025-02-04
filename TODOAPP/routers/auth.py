@@ -7,11 +7,17 @@ from typing import Annotated
 from models import Users
 from passlib.context import CryptContext
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from jose import jwt, JWTError
+from datetime import timedelta, datetime, timezone
+
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
+SECRET_KEY = "197b2c37c391bed93fe80344fe73b806947a65e36206e05a1a23c2fa12702fe3"
+ALGORITHM = "HS256"
 
 bcrypt_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+oauth2_bearer = OAuth2PasswordBearer(tokenUrl="auth/login")
 
 
 class CreateUserRequest(BaseModel):
@@ -21,6 +27,11 @@ class CreateUserRequest(BaseModel):
     last_name: str
     password: str
     role: str
+
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
 
 
 def get_db():
@@ -43,6 +54,31 @@ def authenticate_user(username: str, password: str, db):
     return user
 
 
+def create_access_token(
+    username: str, user_id: int, role: str, expires_delta: timedelta
+):
+    encode = {"sub": username, "id": user_id, "role": role}
+    expires = datetime.now(timezone.utc) + expires_delta
+    encode.update({"exp": expires})
+    return jwt.encode(encode, SECRET_KEY, algorithm=ALGORITHM)
+
+
+def get_current_user(token: Annotated[str, Depends(oauth2_bearer)]):
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        username: str = payload.get("sub")
+        user_id: int = payload.get("id")
+        role: str = payload.get("role")
+        if username is None or user_id is None:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Could not validate user.",
+            )
+        return {"username": username, "id": user_id, "role": role}
+    except JWTError:
+        raise HTTPException(status_code=401, detail="Invalid token")
+
+
 @router.post("/register", status_code=status.HTTP_201_CREATED)
 def register_user(db: db_dependency, create_user_request: CreateUserRequest):
     create_user_model = Users(
@@ -59,7 +95,7 @@ def register_user(db: db_dependency, create_user_request: CreateUserRequest):
     db.commit()
 
 
-@router.post("/login", status_code=status.HTTP_200_OK)
+@router.post("/login", status_code=status.HTTP_200_OK, response_model=Token)
 def login_user(
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()], db: db_dependency
 ):
@@ -69,4 +105,8 @@ def login_user(
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Could not validate user."
         )
-    return {"user": user}
+
+    token = create_access_token(
+        user.username, user.id, user.role, timedelta(minutes=15)
+    )
+    return {"access_token": token, "token_type": "bearer"}
