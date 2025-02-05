@@ -51,3 +51,13 @@ def change_password(
         raise HTTPException(status_code=401, detail="Error on password change")
     user_data.hashed_password = bcrypt_context.hash(user_verification.new_password)
     db.commit()
+
+
+@router.put("/user/phone_number/{phone_number}", status_code=status.HTTP_204_NO_CONTENT)
+def phone_number(db: db_dependency, user: user_dependency, phone_number: str):
+    if user is None:
+        raise HTTPException(status_code=401, detail="Authentication Failed")
+    user_data = db.query(Users).filter(Users.id == user.get("id")).first()
+
+    user_data.phone_number = phone_number
+    db.commit()
