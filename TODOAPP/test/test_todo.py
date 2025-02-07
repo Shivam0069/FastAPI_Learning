@@ -74,3 +74,22 @@ def test_read_all(test_todo):
             "owner_id": 1,
         }
     ]
+
+
+def test_read_one(test_todo):
+    response = client.get("/todos/1")
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json() == {
+        "completed": False,
+        "title": "Learn to code!",
+        "description": "Need to learn everyday!",
+        "id": 1,
+        "priority": 5,
+        "owner_id": 1,
+    }
+
+
+def test_read_one_not_found():
+    response = client.get("/todos/2")
+    assert response.status_code == status.HTTP_404_NOT_FOUND
+    assert response.json() == {"detail": "Todo not found"}
