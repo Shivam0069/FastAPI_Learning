@@ -42,4 +42,4 @@ def delete_todo_by_id(
         raise HTTPException(status_code=404, detail="Todo not found")
     db.delete(todo)
     db.commit()
-    return {"message": "Todo deleted successfully"}
+    return None

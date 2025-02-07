@@ -7,26 +7,26 @@ app.dependency_overrides[get_db] = override_get_db
 app.dependency_overrides[get_current_user] = override_get_current_user
 
 
-client = TestClient(app)
+# client = TestClient(app)
 
 
-@pytest.fixture
-def test_todo():
-    todo = Todos(
-        title="Learn to code!",
-        description="Need to learn everyday!",
-        priority=5,
-        completed=False,
-        owner_id=1,
-    )
+# @pytest.fixture
+# def test_todo():
+#     todo = Todos(
+#         title="Learn to code!",
+#         description="Need to learn everyday!",
+#         priority=5,
+#         completed=False,
+#         owner_id=1,
+#     )
 
-    db = TestingSessionLocal()
-    db.add(todo)
-    db.commit()
-    yield todo
-    with engine.connect() as connection:
-        connection.execute(text("DELETE FROM todos;"))
-        connection.commit()
+#     db = TestingSessionLocal()
+#     db.add(todo)
+#     db.commit()
+#     yield todo
+#     with engine.connect() as connection:
+#         connection.execute(text("DELETE FROM todos;"))
+#         connection.commit()
 
 
 def test_read_all(test_todo):

@@ -30,7 +30,7 @@ def override_get_db():
 
 
 def override_get_current_user():
-    return {"username": "codingwithrobytest", "id": 1, "user_role": "admin"}
+    return {"username": "codingwithrobytest", "id": 1, "role": "admin"}
 
 
 client = TestClient(app)
@@ -42,7 +42,7 @@ def test_todo():
         title="Learn to code!",
         description="Need to learn everyday!",
         priority=5,
-        complete=False,
+        completed=False,
         owner_id=1,
     )
 
